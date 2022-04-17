@@ -198,16 +198,16 @@ void solver_solve(struct solver_t *solver) {
     solver->attempts++;
 
     if (solver->move_count == PIECE_TYPES) {
-        printf("TODO output solution!\n");
+        //printf("TODO output solution!\n");
         solver->solutions_found++;
         return;
     }
 
-    if (solver->attempts % 100000 == 0) {
+    if (solver->attempts % 1000000 == 0) {
         solver_print_stats(solver);
     }
 
-    int first_empty_cell = __builtin_ctz(~solver->occupied);
+    int first_empty_cell = __builtin_ctzll(~solver->occupied);
     int first_empty_x = first_empty_cell / HEIGHT;
     int first_empty_y = first_empty_cell % HEIGHT;
 
@@ -220,12 +220,12 @@ void solver_solve(struct solver_t *solver) {
             continue;
         }
 
-        int first_piece_used_cell = __builtin_ctz(piece.mask);
+        int first_piece_used_cell = __builtin_ctzll(piece.mask);
 
         if (
             (first_empty_y - first_piece_used_cell + piece.height > HEIGHT)
             || (first_empty_y - first_piece_used_cell < 0)
-            || (piece.width + first_empty_x >= WIDTH)
+            || (piece.width + first_empty_x > WIDTH)
         ) {
             // piece falls outside board
             continue;
