@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <sys/time.h>
-#include <assert.h>
 
 #define WIDTH (11)
 #define HEIGHT (5)
@@ -99,26 +98,6 @@ double get_current_time() {
     return ((double)tv.tv_sec) + (((double)tv.tv_usec) / 1000000);
 }
 
-void piece_show(const struct piece_t *piece) {
-    char c = 'A' + piece->type;
-    printf("+-----------------------+\n");
-    for (int y = 0; y < HEIGHT; y++) {
-        printf("| ");
-        for (int x = 0; x < WIDTH; x++) {
-            uint64_t cell_bit = 1ull << ((HEIGHT * x) + y);
-            if (piece->mask & cell_bit) {
-                printf("%c ", c);
-            } else {
-                printf("  ");
-            }
-        }
-        printf("|\n");
-    }
-    printf("+-----------------------+\n");
-    printf("Height: %d\n", piece->height);
-    printf(" Width: %d\n", piece->width);
-}
-
 struct move_t {
     int piece_id;
     int offset;
@@ -143,37 +122,41 @@ void solver_init(struct solver_t *solver) {
     solver->start_time = get_current_time();
 }
 
-void solver_print_state(const struct solver_t * solver) {
+void solver_print_solution(const struct solver_t * solver) {
+    int piece_types[WIDTH * HEIGHT];
+    for (int i=0; i<WIDTH * HEIGHT; i++) {
+        piece_types[i] = -1;
+    }
+
+    for (int i=0; i<solver->move_count;i++) {
+        const struct move_t *move = solver->moves + i;
+        const struct piece_t *piece = PIECES + move->piece_id;
+        int piece_type = piece->type;
+        int first_piece_used_cell = __builtin_ctzll(piece->mask);
+
+        for (int j=0; j<WIDTH*HEIGHT; j++) {
+            if (piece->mask & (1ull << j)) {
+                piece_types[move->offset + j - first_piece_used_cell] = piece_type;
+            }
+        }
+    }
+
     printf("+-----------------------+\n");
     for (int y = 0; y < HEIGHT; y++) {
         printf("| ");
         for (int x = 0; x < WIDTH; x++) {
-            uint64_t cell_bit = 1ull << ((HEIGHT * x) + y);
-            if (solver->occupied & cell_bit) {
-                printf("@ ");
-            } else {
+            int piece_type = piece_types[(HEIGHT * x) + y];
+            if (piece_type == -1) {
                 printf("  ");
+            } else {
+                printf("%c ", 'A' + piece_type);
             }
         }
         printf("|\n");
     }
-    printf("+-----------------------+\n");
-
-    printf("moves (%d): ", solver->move_count);
-    for (int i=0; i<solver->move_count; i++) {
-        printf("(piece=%d, offset=%d) ", solver->moves[i].piece_id, solver->moves[i].offset);
-    }
-    printf("\n");
-
-    printf("Used piece types (%d): ", __builtin_popcount(solver->used_piece_types));
-    for (int i=0; i<PIECE_TYPES; i++) {
-        if (solver->used_piece_types & (1ull << i)) {
-            printf("%d ", i);
-        }
-    }
-    printf("\n");
-
+    printf("+-----------------------+\n\n");
 }
+
 
 void solver_print_stats(const struct solver_t *solver) {
     double seconds = get_current_time() - solver->start_time;
@@ -193,17 +176,15 @@ void solver_print_stats(const struct solver_t *solver) {
 }
 
 void solver_solve(struct solver_t *solver) {
-    //solver_print_state(solver);
-
     solver->attempts++;
 
     if (solver->move_count == PIECE_TYPES) {
-        //printf("TODO output solution!\n");
+        solver_print_solution(solver);
         solver->solutions_found++;
         return;
     }
 
-    if (solver->attempts % 1000000 == 0) {
+    if (solver->attempts % 5000000 == 0) {
         solver_print_stats(solver);
     }
 
@@ -212,27 +193,28 @@ void solver_solve(struct solver_t *solver) {
     int first_empty_y = first_empty_cell % HEIGHT;
 
     for (int piece_id = 0; piece_id < NUM_PIECES; piece_id++) {
-        struct piece_t piece = PIECES[piece_id];
-        uint64_t piece_type_mask = 1ull << piece.type;
+        const struct piece_t* piece = PIECES + piece_id;
+
+        // consider adding this to table
+        uint64_t piece_type_mask = 1ull << piece->type;
 
         if (solver->used_piece_types & piece_type_mask) {
             // piece type is already used
             continue;
         }
 
-        int first_piece_used_cell = __builtin_ctzll(piece.mask);
+        int first_piece_used_cell = __builtin_ctzll(piece->mask);
 
         if (
-            (first_empty_y - first_piece_used_cell + piece.height > HEIGHT)
+            (first_empty_y - first_piece_used_cell + piece->height > HEIGHT)
             || (first_empty_y - first_piece_used_cell < 0)
-            || (piece.width + first_empty_x > WIDTH)
+            || (piece->width + first_empty_x > WIDTH)
         ) {
             // piece falls outside board
             continue;
         }
 
-        assert((piece.mask >> first_piece_used_cell) & 1);
-        uint64_t occupy_mask = (piece.mask >> first_piece_used_cell) << first_empty_cell;
+        uint64_t occupy_mask = (piece->mask >> first_piece_used_cell) << first_empty_cell;
 
         if (occupy_mask & solver->occupied) {
             // piece would overlap with other piece
