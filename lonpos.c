@@ -211,10 +211,6 @@ void solver_solve(struct solver_t *solver) {
     int first_empty_x = first_empty_cell / HEIGHT;
     int first_empty_y = first_empty_cell % HEIGHT;
 
-    // printf("first_empty_cell = %d\n", first_empty_cell);
-    // printf("first_empty_x = %d\n", first_empty_x);
-    // printf("first_empty_y = %d\n", first_empty_y);
-
     for (int piece_id = 0; piece_id < NUM_PIECES; piece_id++) {
         struct piece_t piece = PIECES[piece_id];
         uint64_t piece_type_mask = 1ull << piece.type;
@@ -227,7 +223,7 @@ void solver_solve(struct solver_t *solver) {
         int first_piece_used_cell = __builtin_ctz(piece.mask);
 
         if (
-            (first_empty_y - first_piece_used_cell + piece.height >= HEIGHT)
+            (first_empty_y - first_piece_used_cell + piece.height > HEIGHT)
             || (first_empty_y - first_piece_used_cell < 0)
             || (piece.width + first_empty_x >= WIDTH)
         ) {
