@@ -1,6 +1,6 @@
 
 # Lonpos 5 x 11 Puzzle
-This repo implements a fast brute-force search to find all 371,020 solutions of the Lonpos 505 brick puzzle.
+This repo implements a fast brute-force search to find all 371,020 solutions of the [Lonpos 505 brick puzzle](https://www.lonpos.com.au/products/lonpos-505).
 
 ![](lonpos.jpeg)
 
