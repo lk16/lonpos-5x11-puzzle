@@ -33,8 +33,7 @@ We can use `grep '^AAAJJJJDDDD..A......D' solutions/machine_readable.txt` to fin
 
 
 ## Performance
-This program runs in about 16 seconds on my machine, trying 155,674,519 configurations and thus achieving a speed of about 9,400,000 configurations per second.
-When redirecting output to `/dev/null` speeds up to 13,500,000 can be reached on my machine.
+This program runs in about 8.5 seconds on my machine, trying 155,462,271 configurations and thus achieving a speed of about 18,000,000 configurations per second.
 
 ## My machine
 

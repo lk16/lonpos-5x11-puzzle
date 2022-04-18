@@ -19,77 +19,106 @@
 
 struct piece_t {
     uint64_t mask;
-    int type;
     int width;
     int height;
+    int first_used_cell;
 };
 
 #define NUM_PIECES (60)
 
-const struct piece_t PIECES[NUM_PIECES] = {
-    {0x423, 0, 3, 2},
-    {0xc21, 0, 3, 2},
-    {0x843, 0, 3, 2},
-    {0xc42, 0, 3, 2},
-    {0x27, 0, 2, 3},
-    {0x87, 0, 2, 3},
-    {0xe1, 0, 2, 3},
-    {0xe4, 0, 2, 3},
-    {0x463, 1, 3, 2},
-    {0x863, 1, 3, 2},
-    {0x67, 1, 2, 3},
-    {0xe3, 1, 2, 3},
-    {0xc7, 1, 2, 3},
-    {0xe6, 1, 2, 3},
-    {0xc61, 1, 3, 2},
-    {0xc62, 1, 3, 2},
-    {0x8423, 2, 4, 2},
-    {0x18421, 2, 4, 2},
-    {0x10843, 2, 4, 2},
-    {0x18842, 2, 4, 2},
-    {0x2f, 2, 2, 4},
-    {0x10f, 2, 2, 4},
-    {0x1e1, 2, 2, 4},
-    {0x1e8, 2, 2, 4},
-    {0x8461, 3, 4, 2},
-    {0x8c21, 3, 4, 2},
-    {0x10862, 3, 4, 2},
-    {0x10c42, 3, 4, 2},
-    {0x4f, 3, 2, 4},
-    {0x8f, 3, 2, 4},
-    {0x1e2, 3, 2, 4},
-    {0x1e4, 3, 2, 4},
-    {0x10c21, 4, 4, 2},
-    {0x10861, 4, 4, 2},
-    {0x8462, 4, 4, 2},
-    {0x8c42, 4, 4, 2},
-    {0x1c3, 4, 2, 4},
-    {0x187, 4, 2, 4},
-    {0x6e, 4, 2, 4},
-    {0xec, 4, 2, 4},
-    {0x23, 5, 2, 2},
-    {0x61, 5, 2, 2},
-    {0x43, 5, 2, 2},
-    {0x62, 5, 2, 2},
-    {0x1c21, 6, 3, 3},
-    {0x427, 6, 3, 3},
-    {0x1087, 6, 3, 3},
-    {0x1c84, 6, 3, 3},
-    {0x10c3, 7, 3, 3},
-    {0x1861, 7, 3, 3},
-    {0x466, 7, 3, 3},
-    {0xcc4, 7, 3, 3},
-    {0xa7, 8, 2, 3},
-    {0xe5, 8, 2, 3},
-    {0xc23, 8, 3, 2},
-    {0xc43, 8, 3, 2},
-    {0x8421, 9, 4, 1},
-    {0xf, 9, 1, 4},
-    {0x63, 10, 2, 2},
-    {0x8e2, 11, 3, 3},
+#define NUM_PIECE_TYPES (12)
+
+const int PIECE_TYPE_ORIENTATIONS[NUM_PIECE_TYPES] = {
+    8, 8, 8, 8, 8, 4, 4, 4, 4, 2, 1, 1
 };
 
-#define PIECE_TYPES (12)
+const struct piece_t* PIECES[NUM_PIECE_TYPES] = {
+    (struct piece_t[]){
+        {0x423, 3, 2, 0},
+        {0xc21, 3, 2, 0},
+        {0x843, 3, 2, 0},
+        {0xc42, 3, 2, 1},
+        {0x27, 2, 3, 0},
+        {0x87, 2, 3, 0},
+        {0xe1, 2, 3, 0},
+        {0xe4, 2, 3, 2},
+    },
+    (struct piece_t[]){
+        {0x463, 3, 2, 0},
+        {0x863, 3, 2, 0},
+        {0x67, 2, 3, 0},
+        {0xe3, 2, 3, 0},
+        {0xc7, 2, 3, 0},
+        {0xe6, 2, 3, 1},
+        {0xc61, 3, 2, 0},
+        {0xc62, 3, 2, 1},
+    },
+    (struct piece_t[]){
+        {0x8423, 4, 2, 0},
+        {0x18421, 4, 2, 0},
+        {0x10843, 4, 2, 0},
+        {0x18842, 4, 2, 1},
+        {0x2f, 2, 4, 0},
+        {0x10f, 2, 4, 0},
+        {0x1e1, 2, 4, 0},
+        {0x1e8, 2, 4, 3},
+    },
+    (struct piece_t[]){
+        {0x8461, 4, 2, 0},
+        {0x8c21, 4, 2, 0},
+        {0x10862, 4, 2, 1},
+        {0x10c42, 4, 2, 1},
+        {0x4f, 3, 4, 0},
+        {0x8f, 3, 4, 0},
+        {0x1e2, 2, 4, 1},
+        {0x1e4, 2, 4, 2},
+    },
+    (struct piece_t[]){
+        {0x10c21, 4, 2, 0},
+        {0x10861, 4, 2, 0},
+        {0x8462, 4, 2, 1},
+        {0x8c42, 4, 2, 1},
+        {0x1c3, 2, 4, 0},
+        {0x187, 2, 4, 0},
+        {0x6e, 2, 4, 1},
+        {0xec, 2, 4, 2},
+    },
+    (struct piece_t[]){
+        {0x23, 2, 2, 0},
+        {0x61, 2, 2, 0},
+        {0x43, 2, 2, 0},
+        {0x62, 2, 2, 1},
+    },
+    (struct piece_t[]){
+        {0x1c21, 3, 3, 0},
+        {0x427, 3, 3, 0},
+        {0x1087, 3, 3, 0},
+        {0x1c84, 3, 3, 2},
+    },
+    (struct piece_t[]){
+        {0x10c3, 3, 3, 0},
+        {0x1861, 3, 3, 0},
+        {0x466, 3, 3, 1},
+        {0xcc4, 3, 3, 2},
+    },
+    (struct piece_t[]){
+        {0xa7, 2, 3, 0},
+        {0xe5, 2, 3, 0},
+        {0xc23, 3, 2, 0},
+        {0xc43, 3, 2, 0},
+    },
+    (struct piece_t[]){
+        {0x8421, 4, 1, 0},
+        {0xf, 1, 4, 0},
+    },
+    (struct piece_t[]){
+        {0x63, 2, 2, 0},
+    },
+    (struct piece_t[]){
+        {0x8e2, 3, 3, 1},
+    }
+};
+
 
 double get_current_time() {
     struct timeval tv;
@@ -99,14 +128,15 @@ double get_current_time() {
 }
 
 struct move_t {
-    int piece_id;
+    int piece_type;
+    int orientation;
     int offset;
 };
 
 struct solver_t {
     uint64_t attempts;
     uint64_t used_piece_types;
-    struct move_t moves[PIECE_TYPES];
+    struct move_t moves[NUM_PIECE_TYPES];
     int move_count;
     uint64_t occupied;
     int solutions_found;
@@ -130,8 +160,8 @@ void solver_print_solution(const struct solver_t * solver) {
 
     for (int i=0; i<solver->move_count;i++) {
         const struct move_t *move = solver->moves + i;
-        const struct piece_t *piece = PIECES + move->piece_id;
-        int piece_type = piece->type;
+        const struct piece_t *piece = PIECES[move->piece_type] + move->orientation;
+        int piece_type = move->piece_type;
         int first_piece_used_cell = __builtin_ctzll(piece->mask);
 
         for (int j=0; j<WIDTH*HEIGHT; j++) {
@@ -178,7 +208,7 @@ void solver_print_stats(const struct solver_t *solver) {
 void solver_solve(struct solver_t *solver) {
     solver->attempts++;
 
-    if (solver->move_count == PIECE_TYPES) {
+    if (solver->move_count == NUM_PIECE_TYPES) {
         solver_print_solution(solver);
         solver->solutions_found++;
         return;
@@ -192,49 +222,57 @@ void solver_solve(struct solver_t *solver) {
     int first_empty_x = first_empty_cell / HEIGHT;
     int first_empty_y = first_empty_cell % HEIGHT;
 
-    for (int piece_id = 0; piece_id < NUM_PIECES; piece_id++) {
-        const struct piece_t* piece = PIECES + piece_id;
+    for (int piece_type = 0; piece_type < NUM_PIECE_TYPES; piece_type++) {
 
-        // consider adding this to table
-        uint64_t piece_type_mask = 1ull << piece->type;
+        uint64_t piece_type_mask = 1ull << piece_type;
 
         if (solver->used_piece_types & piece_type_mask) {
             // piece type is already used
             continue;
         }
 
-        int first_piece_used_cell = __builtin_ctzll(piece->mask);
-
-        if (
-            (first_empty_y - first_piece_used_cell + piece->height > HEIGHT)
-            || (first_empty_y - first_piece_used_cell < 0)
-            || (piece->width + first_empty_x > WIDTH)
-        ) {
-            // piece falls outside board
-            continue;
-        }
-
-        uint64_t occupy_mask = (piece->mask >> first_piece_used_cell) << first_empty_cell;
-
-        if (occupy_mask & solver->occupied) {
-            // piece would overlap with other piece
-            continue;
-        }
-
-        solver->moves[solver->move_count] = (struct move_t){
-            .piece_id = piece_id,
-            .offset = first_empty_cell
-        };
-
-        solver->occupied |= occupy_mask;
         solver->used_piece_types |= piece_type_mask;
-        solver->move_count++;
 
-        solver_solve(solver);
+        for (int piece_type_orientation = 0; piece_type_orientation < PIECE_TYPE_ORIENTATIONS[piece_type]; piece_type_orientation++) {
+            const struct piece_t* piece = PIECES[piece_type] + piece_type_orientation;
 
-        solver->move_count--;
+            if (
+                (first_empty_y - piece->first_used_cell + piece->height > HEIGHT)
+                || (first_empty_y - piece->first_used_cell < 0)
+                || (piece->width + first_empty_x > WIDTH)
+            ) {
+                // piece falls outside board
+                continue;
+            }
+
+            uint64_t occupy_mask = (piece->mask >> piece->first_used_cell) << first_empty_cell;
+
+            if (occupy_mask & solver->occupied) {
+                // piece would overlap with other piece
+                continue;
+            }
+
+            solver->moves[solver->move_count] = (struct move_t){
+                .piece_type = piece_type,
+                .orientation = piece_type_orientation,
+                .offset = first_empty_cell
+            };
+
+            solver->occupied |= occupy_mask;
+            solver->move_count++;
+
+            solver_solve(solver);
+
+            solver->move_count--;
+            solver->occupied &= (~occupy_mask);
+        }
+
         solver->used_piece_types &= (~piece_type_mask);
-        solver->occupied &= (~occupy_mask);
+    }
+
+
+    for (int piece_id = 0; piece_id < NUM_PIECES; piece_id++) {
+
     }
 }
 
